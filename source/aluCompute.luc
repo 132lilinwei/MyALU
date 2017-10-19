@@ -1,0 +1,67 @@
+module aluCompute (         //this module is where the ALU is coded
+    input mode[6],  // ALUFN
+    input a[8],     //input a
+    input b[8],     //input b
+    output out[8],  //output
+    output z,       //output z
+    output v,       //output v
+    output n        //output n
+  ) {
+  sig rawadd[9];    //store result from addition 9-bit
+  sig afteradd[8];  //store result from addition 8-bit
+  sig xb7;          //store XB7
+  sig zz;           //store value z,v,n, for later use
+  sig vv;
+  sig nn;
+  always {
+                    //initialize to 0
+    out = 8h00;
+    zz = 0;
+    vv = 0;
+    nn = 0;
+    z = 0;
+    v = 0;
+    n = 0;
+    xb7 = b[7];
+    if (mode[0] == 0) {      //if adding
+      rawadd = a + b;
+    } else {                 //if subtracting
+      rawadd = a + ~b + 1;
+      xb7 = ~b[7];
+    }
+    afteradd = rawadd[7:0];      //cut 9-bit to 8-bit
+    if (afteradd == 0) zz = 1;                                        //get z,v,n using gate level logic
+    vv = (a[7] & xb7 & ~afteradd[7]) | (~a[7] & ~xb7  & afteradd[7]);
+    nn = afteradd[7];
+    z = zz;                                                 //output z,v,n
+    v = vv;
+    n = nn;
+    case (mode) {
+      6h00: out = afteradd;  //ADD
+      6h01: out = afteradd;  //SUB
+      6h02: out = a * b;    //MUL   additional function
+      6h18: out = a & b;    //AND
+      6h1E: out = a | b;    //OR
+      6h16: out = a ^ b;    //XOR
+      6h1A: out = a;      //LDR "A"
+      6h20: out = a << b;  //SHL has to be greater than 0
+      6h21: out = a >> b;  //SHR
+      6h23: out = $signed(a) >>> b;  //SRA
+      6h33: out = (zz & mode[1]) | ((nn ^ vv) & mode[2]);  //CMPEQ
+      6h35: out = (zz & mode[1]) | ((nn ^ vv) & mode[2]);  //CMPLT 
+      6h37: out = (zz & mode[1]) | ((nn ^ vv) & mode[2]);  //CMPLE
+    }
+    
+    if (mode == 6h24) { //rotate left  addtional function
+      out = (a << b | (a>>(8-b)));
+
+    }
+    if (mode == 6h25) { //rotate right  addtional function
+      out = (a >> b | (a<<(8-b)));
+
+
+    }
+    
+
+  }
+}

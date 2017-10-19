@@ -1,0 +1,16 @@
+module fastblinker (    //output alterate faster
+    input clk,    // clock
+    input rst,    // reset
+
+    output check
+  ) {
+ 
+  dff counter[25](.clk(clk), .rst(rst));  
+ 
+  always {
+    check = 1;
+    if (counter.q == 0) check = 0;
+    counter.d = counter.q + 1;
+    
+  }
+}

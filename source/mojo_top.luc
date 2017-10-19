@@ -1,0 +1,118 @@
+module mojo_top (
+    input clk,              // 50MHz clock
+    input rst_n,            // reset button (active low)
+    output led [8],         // 8 user controllable LEDs
+    output spi_miso,        // AVR SPI MISO
+    output spi_channel [4], // AVR general purpose pins (used by default to select ADC channel)
+    output avr_rx,          // AVR RX (FPGA TX)
+    output io_led [3][8],   // LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield
+    output io_sel [4],      // Digit select on IO Shield
+    input io_button [5],    // 5 buttons on IO Shield
+    input io_dip [3][8]     // DIP switches on IO Shield
+  ) {
+  
+  sig rst;                  // reset signal
+  sig btn;
+  ledhelper led_help;
+  .clk(clk) {
+    // The reset conditioner is used to synchronize the reset signal to the FPGA
+    // clock. This ensures the entire FPGA comes out of reset at the same time.
+    reset_conditioner reset_cond;
+     myEdge_detector edge_de;
+    .rst(rst) {
+      fsm version= {MANUAL, AUTO, CASES};   //three modes: 1. manuel  2.testmode1  3. testmode2
+      test myAutoTester;                    //for testmode1
+      test2 myAutoTester2;                  //for testmode2
+    }
+
+  }
+  
+  aluCompute myALU;                         //setup ALU compute unit
+  
+  sig lol[6];                                //for some intermediate values
+  
+  always {
+    reset_cond.in = ~rst_n; // input raw inverted reset signal
+    rst = reset_cond.out;   // conditioned reset
+    edge_de.in = io_button[0];
+    btn = edge_de.out;
+    
+    led = 8h00;             // turn LEDs off
+    spi_miso = bz;          // not using SPI
+    spi_channel = bzzzz;    // not using flags
+    avr_rx = bz;            // not using serial port
+    
+    io_led = 3x{{8h00}};    // turn LEDs off
+    io_seg = 8hff;          // turn segments off
+    io_sel = 4b1110;           // select 1 digit
+    io_seg[4] = 0;       //default: letter "P"
+    io_seg[5] = 0;
+    io_seg[0] = 0;
+    io_seg[1] = 0;
+    io_seg[6] = 0;
+    led_help.num = 15;
+    myAutoTester2.result_to_check = myALU.out;         //testmode2 setup
+    myAutoTester2.z_to_check = myALU.z;
+    myAutoTester2.v_to_check = myALU.v;
+    myAutoTester2.n_to_check = myALU.n;
+    if (btn == 1) {                                   //button "up" on the IO shield is for change states
+      if (version.q == version.MANUAL) version.d = version.AUTO;
+      if (version.q == version.AUTO) version.d = version.CASES;  
+      if (version.q == version.CASES) version.d = version.MANUAL;  
+    }
+    
+    if (version.q == version.MANUAL) {              //Manaul state
+      myALU.mode = io_dip[2][7:2];                  //left row led switchs indicate ALUFN 
+      myALU.a = io_dip[1];                          //middle row switchs indicate a
+      myALU.b = io_dip[0];                          //right row switchs indicate b 
+      lol = io_dip[2][7:2];                         //for storing the ALUFN i am using
+      if (io_dip[0] > 7 && (lol == 6h24 || lol == 6h25 || lol == 6h20 || lol == 6h21 || lol == 6h23)) { //when shifting, cannot shift more than 3 digits
+        io_seg = 8hff;
+        io_seg[3] = 0;     //E for b overflow when shifting
+        io_seg[4] = 0;
+        io_seg[6] = 0;
+        io_seg[5] = 0;
+        io_seg[0] = 0;
+      }
+
+      if (lol != 6h00 && lol != 6h01 && lol != 6h02 && lol != 6h18 && lol != 6h1E && 
+      lol != 6h16 && lol != 6h1A && lol != 6h20 && lol != 6h21 && lol != 6h23 && 
+      lol != 6h33 && lol != 6h35 && lol != 6h37 && lol != 6h25 && lol != 6h24) {     //if so such ALUFN code
+        io_seg = 8hff;
+        io_seg[2] = 0;    //A for not correct alufn code
+        io_seg[4] = 0;
+        io_seg[6] = 0;
+        io_seg[5] = 0;
+        io_seg[0] = 0;
+        io_seg[1] = 0;
+        
+      }
+      io_led[2] = myALU.out;    //led indicates the output
+      io_led[1][7] = myALU.z;
+      io_led[1][6] = myALU.v; 
+      io_led[1][5] = myALU.n;
+    } else if (version.q == version.AUTO) {    //testmode1: auto iterate nearly all possible inputs and ALUFN code
+      myALU.mode = myAutoTester.alufn;
+      myALU.a = myAutoTester.a;
+      myALU.b = myAutoTester.b;
+      io_led[1] = myAutoTester.a;               //dispaly a, b, and ALU output
+      io_led[0] = myAutoTester.b;
+      io_led[2] = myALU.out;
+      led_help.num = myAutoTester.mode_code;    //ledheper is for me to easily display numbers on screen
+      io_seg = led_help.led;                    //states is displayed on screen
+    } else {                                 //version.CASES testmode2: specific cases with manually defined answer
+      myALU.mode = myAutoTester2.alufn;
+      myALU.a = myAutoTester2.a;             //link tester to ALU
+      myALU.b = myAutoTester2.b;
+      io_led[1] = myAutoTester2.a;           //display a, b, and ALU output 
+      io_led[0] = myAutoTester2.b;
+      io_led[2] = myALU.out;
+      if (!myAutoTester2.pass) {              //if pass, print P
+        led_help.num = 15;              //print F  
+        io_seg = led_help.led;
+      }
+    }
+
+  }
+}

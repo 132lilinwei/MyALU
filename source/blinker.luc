@@ -1,0 +1,19 @@
+module blinker (
+    input clk,    // clock
+    input rst,    // reset
+    output aa[3],  // output
+    output bb[3],
+    output check
+  ) {
+ 
+  dff counter[29](.clk(clk), .rst(rst));  
+ 
+  always {
+    check = 1;    //check if the blinker has go 1 round
+    if (counter.q == 0) check = 0;
+    aa = counter.q[28:26];           //give alterating output                 //iterate all combinations of the output using the most significant bits
+    bb = counter.q[25:23];
+    counter.d = counter.q + 1;
+    
+  }
+}

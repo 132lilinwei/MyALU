@@ -1,0 +1,109 @@
+module test (   //Testmode1:  auto iterate nearly all possible inputs and ALUFN code to ALU unit
+    input clk,  // clock
+    input rst,  // reset
+    output a[8],
+    output b[8],
+    output alufn[6],
+    output mode_code[4]
+  ) {
+  .clk(clk){
+    .rst(rst) {
+      fsm myFsm = {CMPLE, ADD, SUB, MUL, AND, OR, XOR, LDR, SHL, SHR, SRA, RL, RR, CMPEQ, CMPLT};   //different state
+      blinker blin;
+    }
+  }
+
+  always {
+    a = 8h00;
+    b = 8h00;
+    alufn = 6b000000;
+    mode_code = 15;
+    if (myFsm.q == myFsm.ADD || myFsm.q == myFsm.SUB || myFsm.q == myFsm.AND || myFsm.q == myFsm.OR || myFsm.q == myFsm.XOR ||
+    myFsm.q == myFsm.LDR || myFsm.q == myFsm.CMPEQ || myFsm.q == myFsm.CMPLT || myFsm.q == myFsm.CMPLE) { //for non-shift operation only iterate the most sigificant bits
+      a[7:5] = blin.aa;  //only most 3 significant bits of a and b is iterating
+      b[7:5] = blin.bb;
+      a[4:0] = 5b11111;  //the other bits keep to 1
+      b[4:0] = 5b11111;
+    } else {             //for shifting operation, only iterate b's least 3 significant bits
+      a[7:5] = blin.aa;  
+      a[4:0] = 5b11111;
+      b[2:0] = blin.bb;
+      b[7:3] = 5b00000;
+    }
+    if (myFsm.q == myFsm.ADD) {   //mode_code is for the led lights
+      alufn = 6b000000;
+      mode_code = 0;
+      if (blin.check == 0) myFsm.d = myFsm.SUB;  //if blinker finish 1 round, next state
+    }
+    if (myFsm.q == myFsm.SUB) {
+      alufn = 6b000001;
+      mode_code = 1;
+      if (blin.check == 0) myFsm.d = myFsm.MUL;
+    }
+    if (myFsm.q == myFsm.MUL) {
+      alufn = 6b000010;
+      mode_code = 2;
+      if (blin.check == 0) myFsm.d = myFsm.AND;
+    }
+    if (myFsm.q == myFsm.AND) {
+      alufn = 6b011000;
+      mode_code = 3;
+      if (blin.check == 0) myFsm.d = myFsm.OR;
+    }
+    if (myFsm.q == myFsm.OR) {
+      alufn = 6b011110;
+      mode_code = 4;
+      if (blin.check == 0) myFsm.d = myFsm.XOR;
+    }
+    if (myFsm.q == myFsm.XOR) {
+      alufn = 6b010110;
+      mode_code = 5;
+      if (blin.check == 0) myFsm.d = myFsm.LDR;
+    }
+    if (myFsm.q == myFsm.LDR) {
+      alufn = 6b011010;
+      mode_code = 6;
+      if (blin.check == 0) myFsm.d = myFsm.SHL;
+    }
+    if (myFsm.q == myFsm.SHL) {
+      alufn = 6b100000;
+      mode_code = 7;
+      if (blin.check == 0) myFsm.d = myFsm.SHR;
+    }
+    if (myFsm.q == myFsm.SHR) {
+      alufn = 6b100001;
+      mode_code = 8;
+      if (blin.check == 0) myFsm.d = myFsm.SRA;
+    }
+    if (myFsm.q == myFsm.SRA) {
+      alufn = 6b100011;
+      mode_code = 9;
+      if (blin.check == 0) myFsm.d = myFsm.RL;
+    }
+    if (myFsm.q == myFsm.RL) {                    //Rotate Left additional function
+      alufn = 6b100100;
+      mode_code = 10;
+      if (blin.check == 0) myFsm.d = myFsm.RR;
+    }
+    if (myFsm.q == myFsm.RR) {                    //Rotate Right additional function
+      alufn = 6b100101;
+      mode_code = 11;
+      if (blin.check == 0) myFsm.d = myFsm.CMPEQ;
+    }
+    if (myFsm.q == myFsm.CMPEQ) {
+      alufn = 6b110011;
+      mode_code = 12;
+      if (blin.check == 0) myFsm.d = myFsm.CMPLT;
+    }
+    if (myFsm.q == myFsm.CMPLT) {
+      alufn = 6b110101;
+      mode_code = 13;
+      if (blin.check == 0) myFsm.d = myFsm.CMPLE;
+    }
+    if (myFsm.q == myFsm.CMPLE) {
+      alufn = 6b110111;
+      mode_code = 14;
+      if (blin.check == 0) myFsm.d = myFsm.ADD;
+    }
+  }
+}

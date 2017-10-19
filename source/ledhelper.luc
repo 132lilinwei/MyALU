@@ -1,0 +1,141 @@
+module ledhelper (
+    input num[4],    //input which number you want to display
+    output led[8]
+  ) {
+
+  always {
+    led = 8h00;
+    case (num) {   //display on led 0 1 2 3 4 5 6 7 8 9 a b c d e f
+      0:
+        led[0] = 0;   
+        led[1] = 0;  
+        led[2] = 0;  
+        led[3] = 0;  
+        led[4] = 0;  
+        led[5] = 0;  
+        led[6] = 1;       
+      1:
+        led[0] = 1;   
+        led[1] = 0;  
+        led[2] = 0;  
+        led[3] = 1;  
+        led[4] = 1;  
+        led[5] = 1;  
+        led[6] = 1;   
+      2:
+        led[0] = 0;   
+        led[1] = 0;  
+        led[2] = 1;  
+        led[3] = 0;  
+        led[4] = 0;  
+        led[5] = 1;  
+        led[6] = 0;   
+      3:
+        led[0] = 0;   
+        led[1] = 0;  
+        led[2] = 0;  
+        led[3] = 0;  
+        led[4] = 1;  
+        led[5] = 1;  
+        led[6] = 0;   
+      4:
+        led[0] = 1;   
+        led[1] = 0;  
+        led[2] = 0;  
+        led[3] = 1;  
+        led[4] = 1;  
+        led[5] = 0;  
+        led[6] = 0;
+      5:
+        led[0] = 0;   
+        led[1] = 1;  
+        led[2] = 0;  
+        led[3] = 0;  
+        led[4] = 1;  
+        led[5] = 0;  
+        led[6] = 0;
+      6:
+        led[0] = 0;   
+        led[1] = 1;  
+        led[2] = 0;  
+        led[3] = 0;  
+        led[4] = 0;  
+        led[5] = 0;  
+        led[6] = 0;
+      7:
+        led[0] = 0;   
+        led[1] = 0;  
+        led[2] = 0;  
+        led[3] = 1;  
+        led[4] = 1;  
+        led[5] = 1;  
+        led[6] = 1;
+      8:
+        led[0] = 0;   
+        led[1] = 0;  
+        led[2] = 0;  
+        led[3] = 0;  
+        led[4] = 0;  
+        led[5] = 0;  
+        led[6] = 0;
+      9:
+        led[0] = 0;   
+        led[1] = 0;  
+        led[2] = 0;  
+        led[3] = 0;  
+        led[4] = 1;  
+        led[5] = 0;  
+        led[6] = 0;
+      10:
+        led[0] = 0;   
+        led[1] = 0;  
+        led[2] = 0;  
+        led[3] = 1;  
+        led[4] = 0;  
+        led[5] = 0;  
+        led[6] = 0;
+      11:
+        led[0] = 1;   
+        led[1] = 1;  
+        led[2] = 0;  
+        led[3] = 0;  
+        led[4] = 0;  
+        led[5] = 0;  
+        led[6] = 0;
+      12:
+        led[0] = 1;   
+        led[1] = 1;  
+        led[2] = 1;  
+        led[3] = 0;  
+        led[4] = 0;  
+        led[5] = 1;  
+        led[6] = 0;
+      13:
+        led[0] = 1;   
+        led[1] = 0;  
+        led[2] = 0;  
+        led[3] = 0;  
+        led[4] = 0;  
+        led[5] = 1;  
+        led[6] = 0;
+      14:
+        led[0] = 0;   
+        led[1] = 0;  
+        led[2] = 1;  
+        led[3] = 0;  
+        led[4] = 0;  
+        led[5] = 0;  
+        led[6] = 0;
+      15:
+        led[0] = 0;   
+        led[1] = 1;  
+        led[2] = 1;  
+        led[3] = 1;  
+        led[4] = 0;  
+        led[5] = 0;  
+        led[6] = 0;
+      
+    }
+  
+  }
+}
